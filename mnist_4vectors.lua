@@ -13,14 +13,12 @@ testData:add(-mean):div(std);
 
 
 ----- ### Shuffling data
-
 function shuffle(data, labels) --shuffle data function
     local randomIndexes = torch.randperm(data:size(1)):long() 
     return data:index(1,randomIndexes), labels:index(1,randomIndexes)
 end
 
 ------   ### Define model and criterion
-
 require 'nn'
 require 'cunn'
 require 'optim'
@@ -36,8 +34,6 @@ for i=1, #layerSize-1 do
   model:add(nn.Linear(layerSize[i], layerSize[i+1]))
   model:add(nn.ReLU())
 end
--- model:add(nn.Linear(layerSize[#layerSize], outputSize))
--- model:add(nn.LogSoftMax())  
 local b1 = nn.Sequential()
 local b2 = nn.Sequential()
 local b3 = nn.Sequential()
@@ -109,10 +105,8 @@ torch.save('modelTest.dat',model)
 local w, dE_dw = model:getParameters()
 print('Number of parameters:', w:nElement())
 -- print(model.modules)
----- ### Classification criterion
--- criterion = nn.MultiMarginCriterion():cuda()
 
----   ### parallel constants
+-- criterion = nn.MultiMarginCriterion():cuda()
 crit1  = nn.MultiMarginCriterion():cuda()
 crit2  = nn.MultiMarginCriterion():cuda()
 crit3  = nn.MultiMarginCriterion():cuda()
@@ -128,8 +122,6 @@ criterion = nn.ParallelCriterion():add(crit1):add(crit2):add(crit3):add(crit4):a
 
 
 --- ### Main evaluation + training function
-
--- start comment
 function forwardNet(data, labels, train)
   timer = torch.Timer()
 
@@ -184,14 +176,8 @@ function forwardNet(data, labels, train)
 
   return avgLoss, avgError, tostring(confusion)
 end
----- end comment
-
 
 --- ### Train the network on training set, evaluate on separate set
-
--- start comment
-
-
 trainLoss = torch.Tensor(epochs)
 testLoss = torch.Tensor(epochs)
 trainError = torch.Tensor(epochs)
@@ -199,7 +185,6 @@ testError = torch.Tensor(epochs)
 
 ---    ### Introduce momentum, L2 regularization
 --reset net weights
--- start comment
 model:apply(function(l) l:reset() end)
 
 optimState = {
@@ -228,7 +213,6 @@ end
 
 print('Training error: ' .. trainError[epochs], 'Training Loss: ' .. trainLoss[epochs])
 print('Test error: ' .. testError[epochs], 'Test Loss: ' .. testLoss[epochs])
--- end comment
 
 
 print('Test error mean: ',torch.mean(testError:narrow(1,testError:size(1)-10,10)));
@@ -238,18 +222,3 @@ print('Test loss: ',testLoss)
 print('Train loss: ',trainLoss)
 
 torch.save('model_mnist_4v.dat',model)
-
-
--- ********************* Plots *********************
-require 'gnuplot'
-local range = torch.range(1, epochs)
-gnuplot.pngfigure('SelectedModel.png')
-gnuplot.plot({'trainLoss',trainLoss},{'testLoss',testLoss})
-gnuplot.xlabel('epochs')
-gnuplot.ylabel('Loss')
-gnuplot.plotflush()
-gnuplot.pngfigure('error.png')
-gnuplot.plot({'trainErr',trainError},{'testErr',testError})
-gnuplot.xlabel('epochs')
-gnuplot.ylabel('Error')
-gnuplot.plotflush()
