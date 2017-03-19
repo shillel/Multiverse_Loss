@@ -9,5 +9,5 @@ MNIST:
 2. see the results: energy_mnist_*v.lua
 
 NIN:
-1. train 2 vectors: nin_*vectors.lua
+1. train 2-3 vectors: nin_*vectors.lua
 2. see the results: energy_nin_*v.lua
